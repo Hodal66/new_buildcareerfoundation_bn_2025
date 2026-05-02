@@ -1,6 +1,8 @@
 // import { sendEmailProgrammatically } from "../Email_Middleware/nodemailer.config.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/Users.js";
+import { SubscriptionData } from "../models/Subscription.js";
+import { notifySubscribersOfNewPost } from "../utils/mailService.js";
 
 export const postResolver = {
   Query: {
@@ -46,6 +48,17 @@ export const postResolver = {
         { $push: { posts: post._id } },
         { new: true, useFindAndModify: false }
       );
+
+      // Notify Subscribers asynchronously
+      try {
+        const subscribers = await SubscriptionData.find({});
+        const emails = subscribers.map(s => s.subscriptionWithEmail);
+        if (emails.length > 0) {
+          notifySubscribersOfNewPost(emails, post);
+        }
+      } catch (err) {
+        console.error("Failed to fetch subscribers for notification:", err.message);
+      }
 
       return post;
     },

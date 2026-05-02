@@ -30,7 +30,7 @@ export const userResolver = {
   Mutation: {
     async sign_up(parent, args, context) {
       const { input } = args;
-      const { email, password, firstName, secondName } = input;
+      const { email, password, firstName, secondName, role } = input;
 
       const existingUser = await User.findOne({ email }).exec();
 
@@ -43,6 +43,7 @@ export const userResolver = {
         secondName,
         email,
         password: hashedPassword,
+        role: role || "student",
       });
       console.log(createdUser);
 
@@ -78,6 +79,33 @@ export const userResolver = {
         user: existingUser,
         token,
       };
+    },
+    async update_user(parent, args, context) {
+      const { id, input } = args;
+      const { firstName, secondName, email, role } = input;
+      
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+        { firstName, secondName, email, role },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error("User not found.");
+      }
+
+      return updatedUser;
+    },
+
+    async delete_user(parent, args, context) {
+      const { id } = args;
+      const deletedUser = await User.findByIdAndDelete(id);
+
+      if (!deletedUser) {
+        throw new Error("User not found.");
+      }
+
+      return "User deleted successfully.";
     },
   },
 };

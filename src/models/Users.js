@@ -21,10 +21,16 @@ const userSchema = new Schema({
     required: true,
   },
 
+  role: {
+    type: String,
+    enum: ["student", "mentor", "admin"],
+    default: "student",
+  },
+
   posts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "post",
-}],
+  }],
 });
 
 const User = model("User", userSchema);

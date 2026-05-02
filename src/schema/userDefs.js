@@ -7,6 +7,15 @@ export const userDefs = gql`
   type Mutation {
     sign_up(input: UserSignUpInput): UserDataPayload!
     login_user(email: String!, password: String!): UserDataPayload!
+    update_user(id: ID!, input: UserUpdateInput): UserCreated!
+    delete_user(id: ID!): String!
+  }
+
+  input UserUpdateInput {
+    email: String
+    firstName: String
+    secondName: String
+    role: String
   }
 
   input UserSignUpInput {
@@ -14,6 +23,7 @@ export const userDefs = gql`
     password: String!
     firstName: String!
     secondName: String!
+    role: String
   }
   
 
@@ -33,6 +43,7 @@ export const userDefs = gql`
     firstName: String!
     secondName: String!
     _id: ID!
+    role: String
     posts:[ID!]
   }
 
@@ -42,6 +53,7 @@ export const userDefs = gql`
     firstName: String!
     secondName: String!
     _id: ID!
+    role: String
     posts:[PostReturned]!
   }
 

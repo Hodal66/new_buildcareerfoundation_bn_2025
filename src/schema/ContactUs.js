@@ -23,11 +23,11 @@ export const ContactUsDefs = gql`
 
   input ContactUsInput {
     fullName: String!
-    phoneNumber: String!
+    phoneNumber: String
     email: String!
     message: String!
-    date_ContactUsed: String!
-    user_id: ID!
+    date_ContactUsed: String
+    user_id: ID
   }
 
   input ContactUsInputUpdate {

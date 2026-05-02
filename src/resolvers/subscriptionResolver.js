@@ -1,5 +1,5 @@
 import { SubscriptionData } from "../models/Subscription.js";
-import { sendSubscriptionEmail } from "../utils/mailService.js";
+import { sendSubscriptionEmail, notifyAdmin } from "../utils/mailService.js";
 export const subscriptionResolver = {
   Query: {
     async getAllSubscriptions() {
@@ -26,12 +26,15 @@ export const subscriptionResolver = {
       const newSubscription = await SubscriptionData.create(input);
       console.log("Saved Subscriber is:", newSubscription);
 
-      //take an email from the sender
+      // Concurrent email sending
       try {
-        await sendSubscriptionEmail(input.subscriptionWithEmail);
-        console.log("✅ Confirmation email sent.");
+        await Promise.all([
+          sendSubscriptionEmail(subscriptionWithEmail),
+          notifyAdmin("SUBSCRIPTION", { email: subscriptionWithEmail })
+        ]);
+        console.log("✅ Subscriber dual emails sent.");
       } catch (emailErr) {
-        console.error("❌ Email sending failed:", emailErr.message);
+        console.error("❌ Subscriber emails failed:", emailErr.message);
       }
       return newSubscription;
     },
