@@ -179,10 +179,16 @@ export const postResolver = {
   },
   PostReturned: {
     image_url: (post) => {
-      if (Array.isArray(post.image_url)) {
-        return post.image_url[0] || { url: "", filename: "" };
+      let img = post.image_url;
+      if (Array.isArray(img)) {
+        img = img[0] || { url: "", filename: "" };
       }
-      return post.image_url || { url: "", filename: "" };
+      if (!img) return { url: "", filename: "" };
+
+      return {
+        url: Array.isArray(img.url) ? img.url[0] : (img.url || ""),
+        filename: Array.isArray(img.filename) ? img.filename[0] : (img.filename || "")
+      };
     }
   }
 };
