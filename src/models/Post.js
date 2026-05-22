@@ -33,12 +33,10 @@ const postSchema = new Schema({
     required: true,
   },
 
-  image_url: [
-    {
-      url: String,
-      filename: String,
-    },
-  ],
+  image_url: {
+    url: String,
+    filename: String,
+  },
   image_urls: [
     {
       url: String,

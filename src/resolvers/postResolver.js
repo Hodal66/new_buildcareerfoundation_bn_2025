@@ -3,6 +3,14 @@ import { Post } from "../models/Post.js";
 import { User } from "../models/Users.js";
 import { SubscriptionData } from "../models/Subscription.js";
 import { notifySubscribersOfNewPost } from "../utils/mailService.js";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const postResolver = {
   Query: {
@@ -14,6 +22,22 @@ export const postResolver = {
       const { id } = args;
       const post = await Post.findById(id);
       return post;
+    },
+    getCloudinarySignature() {
+      const timestamp = Math.round(new Date().getTime() / 1000);
+      const folder = "BuildCareerFoundation";
+      const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder },
+        process.env.CLOUDINARY_API_SECRET
+      );
+      
+      return {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        folder,
+      };
     },
   },
 
@@ -86,6 +110,8 @@ export const postResolver = {
         youtube_video_url,
       };
 
+      const oldPost = await Post.findById(post_id);
+
       const updatedData = await Post.findByIdAndUpdate(
         post_id,
         dataCapturedToBeUpdated,
@@ -94,11 +120,50 @@ export const postResolver = {
         }
       );
 
+      // Clean up removed images from Cloudinary
+      if (oldPost && oldPost.image_url && image_url) {
+        let oldMain = Array.isArray(oldPost.image_url) ? oldPost.image_url[0] : oldPost.image_url;
+        if (oldMain && oldMain.filename && oldMain.filename !== image_url.filename) {
+          try { await cloudinary.uploader.destroy(oldMain.filename); } catch (e) { console.error(e); }
+        }
+      }
+
+      if (oldPost && oldPost.image_urls && image_urls) {
+        const newFilenames = image_urls.map(img => img?.filename);
+        for (const img of oldPost.image_urls) {
+          if (img && img.filename && !newFilenames.includes(img.filename)) {
+            try {
+              await cloudinary.uploader.destroy(img.filename);
+            } catch (err) {
+              console.error("Error deleting old image from Cloudinary:", err);
+            }
+          }
+        }
+      }
+
       return updatedData;
     },
 
     async deletePost(parent, args, context) {
       const { input } = args;
+      const post = await Post.findById(input);
+      if (post && post.image_url) {
+        let mainImg = Array.isArray(post.image_url) ? post.image_url[0] : post.image_url;
+        if (mainImg && mainImg.filename) {
+          try { await cloudinary.uploader.destroy(mainImg.filename); } catch (e) { console.error(e); }
+        }
+      }
+      if (post && post.image_urls) {
+        for (const img of post.image_urls) {
+          if (img && img.filename) {
+            try {
+              await cloudinary.uploader.destroy(img.filename);
+            } catch (err) {
+              console.error("Error deleting image from Cloudinary:", err);
+            }
+          }
+        }
+      }
       const deleteData = await Post.findByIdAndDelete(input);
       if (deleteData) {
         return {
@@ -112,4 +177,12 @@ export const postResolver = {
       };
     },
   },
+  PostReturned: {
+    image_url: (post) => {
+      if (Array.isArray(post.image_url)) {
+        return post.image_url[0] || { url: "", filename: "" };
+      }
+      return post.image_url || { url: "", filename: "" };
+    }
+  }
 };

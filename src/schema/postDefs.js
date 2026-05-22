@@ -82,6 +82,15 @@ export const postDefs = gql`
   type Query {
     getAllPosts: [PostReturned]!
     getOnePost(id: ID!): PostReturned!
+    getCloudinarySignature: CloudinarySignature!
+  }
+
+  type CloudinarySignature {
+    signature: String!
+    timestamp: Int!
+    apiKey: String!
+    cloudName: String!
+    folder: String!
   }
 
   type Mutation {
@@ -95,7 +104,7 @@ export const postDefs = gql`
     content: String!
     contentSections: [ContentSectionReturned!]!
     category: String!
-    image_url: [ImageToBeSavedReturned!]!
+    image_url: ImageToBeSavedReturned!
     image_urls: [ImageToBeSavedReturned!]!
     youtube_video_url: String!
     _id: ID!
@@ -107,7 +116,7 @@ export const postDefs = gql`
     content: String!
     contentSections: [ContentSectionInput!]!
     category: String!
-    image_url: [ImageToBeSaved!]!
+    image_url: ImageToBeSaved!
     image_urls: [ImageToBeSaved!]!
     youtube_video_url: String!
     user_id: ID!
@@ -118,7 +127,7 @@ export const postDefs = gql`
     content: String!
     contentSections: [ContentSectionInput!]!
     category: String!
-    image_url: [ImageToBeSaved!]
+    image_url: ImageToBeSaved
     image_urls: [ImageToBeSaved!]
     youtube_video_url: String!
     post_id: ID!
