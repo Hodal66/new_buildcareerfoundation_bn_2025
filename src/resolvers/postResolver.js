@@ -24,6 +24,10 @@ export const postResolver = {
       return post;
     },
     getCloudinarySignature() {
+      if (!process.env.CLOUDINARY_API_SECRET || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_CLOUD_NAME) {
+        throw new Error("Cloudinary environment variables are missing. Please configure them on your hosting platform.");
+      }
+
       const timestamp = Math.round(new Date().getTime() / 1000);
       const folder = "BuildCareerFoundation";
       const signature = cloudinary.utils.api_sign_request(
